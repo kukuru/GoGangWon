@@ -4,6 +4,7 @@ import android.os.AsyncTask;
 import android.util.Log;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.nankuru.gogangwon.CommonValue;
 
 import java.io.IOException;
@@ -43,10 +44,11 @@ public class LoadEmptyHouseInfo extends AsyncTask
                     InputStream input = con.getInputStream();
                     InputStreamReader reader = new InputStreamReader(input);
 
+                    char buffer[] = new char[1024];
+                    int len = reader.read(buffer);
                     Log.d("NJ LEE", "status : "+status);
                     Gson gson = new Gson();
-                    EmptyHouse houseInfo = gson.fromJson(reader, EmptyHouse.class);
-                    Log.d("NJ LEE", houseInfo.resultData.getCODE());
+                    GangWonHouse houseInfo = gson.fromJson(reader, GangWonHouse.class);
                     break;
                 case HttpURLConnection.HTTP_GATEWAY_TIMEOUT:
                     break;
