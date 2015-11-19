@@ -5,7 +5,7 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 
-import com.nankuru.gogangwon.emptyhouse.LoadEmptyHouseInfo;
+import com.nankuru.gogangwon.emptyhouse.LoadEmptyHouse;
 
 public class MainActivity extends Activity {
 
@@ -14,7 +14,7 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        LoadEmptyHouseInfo loader = new LoadEmptyHouseInfo();
+        LoadEmptyHouse loader = new LoadEmptyHouse(this);
         loader.execute();
     }
 

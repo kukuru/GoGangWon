@@ -1,4 +1,4 @@
-package com.nankuru.gogangwon.emptyhouse;
+package com.nankuru.gogangwon.emptyhouse.data;
 
 /**
  * Created by nanjui on 2015. 11. 16..

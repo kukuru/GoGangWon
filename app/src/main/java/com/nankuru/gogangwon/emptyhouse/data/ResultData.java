@@ -1,4 +1,4 @@
-package com.nankuru.gogangwon.emptyhouse;
+package com.nankuru.gogangwon.emptyhouse.data;
 
 
 
