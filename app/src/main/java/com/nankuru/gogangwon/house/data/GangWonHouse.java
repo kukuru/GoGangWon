@@ -1,4 +1,4 @@
-package com.nankuru.gogangwon.emptyhouse.data;
+package com.nankuru.gogangwon.house.data;
 
 import com.google.gson.annotations.SerializedName;
 
@@ -7,4 +7,8 @@ import com.google.gson.annotations.SerializedName;
  */
 public class GangWonHouse {
     @SerializedName("gangwon-housing-empty_house") EmptyHouse emptyHouse = new EmptyHouse();
+    public EmptyHouse getEmptyHouse() {
+        return emptyHouse;
+    }
+
 }

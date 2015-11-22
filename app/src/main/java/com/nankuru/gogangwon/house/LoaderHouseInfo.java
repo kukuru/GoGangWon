@@ -1,12 +1,13 @@
-package com.nankuru.gogangwon.emptyhouse;
+package com.nankuru.gogangwon.house;
 
 import android.content.Context;
-import android.os.AsyncTask;
+import android.support.v4.content.AsyncTaskLoader;
+import android.util.Log;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.nankuru.gogangwon.CommonValue;
-import com.nankuru.gogangwon.emptyhouse.data.GangWonHouse;
+import com.nankuru.gogangwon.house.data.GangWonHouse;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -18,25 +19,32 @@ import java.net.URL;
 /**
  * Created by nanjui on 2015. 11. 16..
  */
-public class LoadEmptyHouse extends AsyncTask
+public class LoaderHouseInfo extends AsyncTaskLoader<GangWonHouse>
 {
-    String start = "1";
-    int end;
-    int loadCap = 8;
-    Context mCtx;
+    private int start = 1;
+    private int loadCap = 5;
+    private int end = loadCap;
 
-    public LoadEmptyHouse(Context context)
+    private Context mCtx;
+    private GangWonHouse houseInfo;
+    private HttpURLConnection con = null;
+
+
+    public LoaderHouseInfo(Context context)
     {
+        super(context);
         mCtx = context;
     }
 
     @Override
-    protected Object doInBackground(Object[] params) {
+    public GangWonHouse loadInBackground() {
+        if(houseInfo != null)
+            end = (start < houseInfo.getEmptyHouse().list_total_count)?end+loadCap:-1;
 
-        String url = CommonValue.gangwonUrl+CommonValue.keyValue+CommonValue.valueType+CommonValue.emptyHouse+"/1/"+loadCap;
+        if(end == -1)
+            return houseInfo;
 
-        end = loadCap;
-        HttpURLConnection con = null;
+        String url = CommonValue.gangwonUrl+CommonValue.keyValue+CommonValue.valueType+CommonValue.emptyHouse+"/"+start+"/"+end;
         try {
             URL urlUse = new URL(url);
             con = (HttpURLConnection)urlUse.openConnection();
@@ -51,19 +59,14 @@ public class LoadEmptyHouse extends AsyncTask
                     InputStreamReader reader = new InputStreamReader(input);
 
                     char buffer[] = new char[1024];
-                    int len = reader.read(buffer);
-                    while(len != 0)
-                    {
-                        len = reader.read(buffer);
-                    }
-
+                    reader.read(buffer);
                     Gson gson = new GsonBuilder().create();
-                    GangWonHouse houseInfo = gson.fromJson(reader, GangWonHouse.class);
+                    houseInfo = gson.fromJson(String.valueOf(buffer).trim(), GangWonHouse.class);
+
                     break;
                 case HttpURLConnection.HTTP_GATEWAY_TIMEOUT:
                     break;
             }
-
         }
         catch(MalformedURLException e)
         {
@@ -73,8 +76,20 @@ public class LoadEmptyHouse extends AsyncTask
         {
             e.printStackTrace();
         }
-
-       return null;
+        start = end;
+        return houseInfo;
     }
 
+    @Override
+    protected void onStartLoading()
+    {
+    }
+
+    @Override
+    protected void onStopLoading()
+    {
+        if(con != null) {
+            con.disconnect();
+        }
+    }
 }
