@@ -13,22 +13,23 @@ public class DbConst {
                     +"usage text not null)",
             "create table hospital ("
                     +" _id integer primary key autoincrement, "
-                    +"address text not null , "
+                    +"gov_type text not null , "
                     +"title text not null , "
-                    +"telephone text not null"
-                    +"homepage text not null)",
+                    +"address text not null"
+                    +"phonenumber text not null"
+                    +"address text not null)",
             "create table market ("
                     +" _id integer primary key autoincrement, "
-                    +"address text not null , "
+                    +"gov_type text not null , "
                     +"title text not null , "
-                    +"telephone text not null)",
-            "create table youth ("
-                    +" _id integer primary key autoincrement, "
-                    +"address text not null , "
-                    +"title text not null , "
-                    +"telephone text not null)"
-
+                    +"address text not null"
+                    +"phonenumber text not null"
+                    +"address text not null)",
     };
+
+    public static final String QUERY_SELECT_EMPTY_HOUSE_ALL_DATA = "select * from empty_house";
+    public static final String QUERY_SELECT_HOSPITAL_ALL_DATA = "select * from hospital";
+    public static final String QUERY_SELECT_MARKET_ALL_DATA = "select * from market";
 
     public static final String EMPTY_HOUSE_TABLE_NAME = "empty_house" ;
 
@@ -36,5 +37,10 @@ public class DbConst {
 
     public static final String MARKET_TABLE_NAME = "market";
 
-    public static final String YOUTH_TABLE_NAME = "youth";
+    public static enum DATA_TYPE
+    {
+        EMPTY_HOUSE,
+        HOSPITAL,
+        MARKET
+    }
 }
