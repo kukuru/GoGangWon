@@ -1,6 +1,8 @@
 package com.nankuru.gogangwon.house;
 
 import android.content.Intent;
+import android.location.Address;
+import android.location.Geocoder;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
@@ -33,6 +35,8 @@ import java.io.StringReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.List;
+import java.util.Locale;
 
 /**
  * Created by nanjui on 2015. 11. 20..
@@ -41,22 +45,22 @@ public class HouseDetailActivity extends NMapActivity implements NMapPOIdataOver
 
     public class Coordinate
     {
-        float longitute;
-        float latitude;
+        double longitute;
+        double latitude;
 
-        public float getLongitute() {
+        public double getLongitute() {
             return longitute;
         }
 
-        public void setLongitute(float longitute) {
+        public void setLongitute(double longitute) {
             this.longitute = longitute;
         }
 
-        public float getLatitude() {
+        public double getLatitude() {
             return latitude;
         }
 
-        public void setLatitude(float latitude) {
+        public void setLatitude(double latitude) {
             this.latitude = latitude;
         }
     }
@@ -76,25 +80,10 @@ public class HouseDetailActivity extends NMapActivity implements NMapPOIdataOver
 
         Intent intent = getIntent();
         String address = intent.getStringExtra("SELECTED_ADDRESS");
-        initData(address);
-        initView();
+        initView("강원도 " + address);
     }
 
-    private void initData(String address)
-    {
-        String addr = String.format(url, address);
-        try
-        {
-            LoadCoordinationFromAddress loader = new LoadCoordinationFromAddress();
-            loader.execute(new URL(addr));
-        }
-        catch (MalformedURLException e)
-        {
-            e.printStackTrace();
-        }
-    }
-
-    private void initView()
+    private void initView(String address)
     {
         mMapView = (NMapView) findViewById(R.id.naver_map);
         mMapView.setApiKey(MAP_API_KEY);
@@ -116,59 +105,56 @@ public class HouseDetailActivity extends NMapActivity implements NMapPOIdataOver
 
         mMapResourceProvider = new NMapViewerResourceProvider(this);
         mMapOverlayMgr = new NMapOverlayManager(this, mMapView, mMapResourceProvider);
-    }
 
-    private Coordinate getCoordinateFromXml(String data){
-        Coordinate coordinate = new Coordinate();
-        try {
-            XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
-            XmlPullParser parser = factory.newPullParser();
-
-            parser.setInput(new StringReader(data));
-            int eventType = parser.getEventType();
-            boolean isLongitude = false;
-            boolean isLatitude = false;
-            while(eventType != XmlPullParser.END_DOCUMENT) {
-                switch (eventType) {
-                    case XmlPullParser.START_DOCUMENT:            // 문서의 시작
-                        break;
-
-                    case XmlPullParser.END_DOCUMENT:        // 문서의 끝
-                        break;
-
-                    case XmlPullParser.START_TAG:
-                        String sTag = parser.getName();
-                        if(sTag.equals("x")) {
-                            isLatitude = true;
-                        }
-                        else if(sTag.equals("y"))
-                        {
-                            isLongitude = true;
-                        }
-                        break;
-                    case XmlPullParser.TEXT:
-                        if(isLatitude)
-                        {
-                            coordinate.setLatitude(Float.valueOf(parser.getText()));
-                            isLatitude = false;
-                        }
-                        else if(isLongitude)
-                        {
-                            coordinate.setLongitute(Float.valueOf(parser.getText()));
-                            isLongitude = false;
-                        }
-                        break;
-                }
-                eventType = parser.next();
-            }
-        } catch (XmlPullParserException e) {
-            e.printStackTrace();
+        try
+        {
+            Coordinate point = null;
+            point = getCoordinationFromAddress(address);
+            displayPin(point);
         }
-        catch(IOException e)
+        catch (IOException e)
         {
             e.printStackTrace();
         }
-        return coordinate;
+    }
+
+    private void displayPin(Coordinate point)
+    {
+        int markerId = NMapPOIflagType.PIN;
+
+        // set POI data
+        NMapPOIdata poiData = new NMapPOIdata(1, mMapResourceProvider);
+        poiData.beginPOIdata(1);
+        poiData.addPOIitem(point.getLongitute(), point.getLatitude(), "위치", markerId, 0);
+        poiData.endPOIdata();
+
+        // create POI data overlay
+        NMapPOIdataOverlay poiDataOverlay = mMapOverlayMgr.createPOIdataOverlay(poiData, null);
+
+        // set event listener to the overlay
+        poiDataOverlay.setOnStateChangeListener(HouseDetailActivity.this);
+
+        // select an item
+        poiDataOverlay.selectPOIitem(0, true);
+
+        // show all POI data
+        poiDataOverlay.showAllPOIdata(0);
+    }
+
+    public Coordinate getCoordinationFromAddress(String address) throws IOException
+    {
+        Geocoder geocoder = new Geocoder(getApplicationContext(), Locale.getDefault());
+        List<Address> fromLocationName = null;
+        fromLocationName = geocoder.getFromLocationName(address,   1);
+        if (fromLocationName != null && fromLocationName.size() > 0)
+        {
+            Address a = fromLocationName.get(0);
+            Coordinate point = new Coordinate();
+            point.setLatitude((a.getLatitude()));
+            point.setLongitute(a.getLongitude());
+            return point;
+        }
+        return null;
     }
 
     @Override
@@ -208,66 +194,5 @@ public class HouseDetailActivity extends NMapActivity implements NMapPOIdataOver
     @Override
     public void onAnimationStateChange(NMapView nMapView, int i, int i1) {
 
-    }
-
-    class LoadCoordinationFromAddress extends AsyncTask<URL, Integer, Coordinate>
-    {
-        @Override
-        protected Coordinate doInBackground(URL... params)
-        {
-            URL urlUse = params[0];
-            HttpURLConnection con = null;
-            try {
-                con = (HttpURLConnection)urlUse.openConnection();
-                con.setRequestMethod("GET");
-                con.connect();
-                int status = con.getResponseCode();
-                switch(status)
-                {
-                    case HttpURLConnection.HTTP_OK:
-                        InputStream input = con.getInputStream();
-                        InputStreamReader reader = new InputStreamReader(input);
-
-                        char buffer[] = new char[1024];
-                        reader.read(buffer);
-                        return getCoordinateFromXml(String.valueOf(buffer));
-                    case HttpURLConnection.HTTP_GATEWAY_TIMEOUT:
-                        break;
-                }
-            }
-            catch (IOException e)
-            {
-                e.printStackTrace();
-            }
-
-            return null;
-        }
-
-        protected void onPostExecute(Coordinate result)
-        {
-            if(result != null)
-            {
-                // Markers for POI item
-                int markerId = NMapPOIflagType.PIN;
-
-                // set POI data
-                NMapPOIdata poiData = new NMapPOIdata(1, mMapResourceProvider);
-                poiData.beginPOIdata(1);
-                poiData.addPOIitem(result.getLatitude(),result.getLongitute(), "위치", markerId, 0);
-                poiData.endPOIdata();
-
-                // create POI data overlay
-                NMapPOIdataOverlay poiDataOverlay = mMapOverlayMgr.createPOIdataOverlay(poiData, null);
-
-                // set event listener to the overlay
-                poiDataOverlay.setOnStateChangeListener(HouseDetailActivity.this);
-
-                // select an item
-                poiDataOverlay.selectPOIitem(0, true);
-
-                // show all POI data
-                poiDataOverlay.showAllPOIdata(0);
-            }
-        }
     }
 }

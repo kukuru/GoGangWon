@@ -45,7 +45,7 @@ public class HouseMainActivity extends FragmentActivity implements LoaderManager
     @Override
     public Loader<GangWonHouse> onCreateLoader(int id, Bundle args)
     {
-        return new LoaderHouseInfo(getApplicationContext());
+        return new LoaderDataFromServer(getApplicationContext());
     }
 
     @Override

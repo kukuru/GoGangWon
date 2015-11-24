@@ -28,77 +28,50 @@ public class EmptyHouse {
     }
 
     public static class EmptyHouseRow {
-        public String ADDRESS;
-        public String MST_NM;
-        public String AREA_FU;
-        public String LAYER_CNT;
-        public String AREA_LO;
-        public String CREATE_TYPE;
-        public String CREATE_YEAR;
-        public String CREATE_USE;
+        @SerializedName("ADDRESS")      String address;
+        @SerializedName("MST_NM")       String owner;
+        @SerializedName("LAYER_CNT")    String layerCnt;
+        @SerializedName("CREATE_YEAR")  String builtYear;
+        @SerializedName("CREATE_USE")   String uage;
 
-        public String getADDRESS() {
-            return ADDRESS;
+        public String getAddress() {
+            return address;
         }
 
-        public void setADDRESS(String ADDRESS) {
-            this.ADDRESS = ADDRESS;
+        public void setAddress(String address) {
+            this.address = address;
         }
 
-        public String getMST_NM() {
-            return MST_NM;
+        public String getOwner() {
+            return owner;
         }
 
-        public void setMST_NM(String MST_NM) {
-            this.MST_NM = MST_NM;
+        public void setOwner(String owner) {
+            this.owner = owner;
         }
 
-        public String getAREA_FU() {
-            return AREA_FU;
+        public String getLayerCnt() {
+            return layerCnt;
         }
 
-        public void setAREA_FU(String AREA_FU) {
-            this.AREA_FU = AREA_FU;
+        public void setLayerCnt(String layerCnt) {
+            this.layerCnt = layerCnt;
         }
 
-        public String getLAYER_CNT() {
-            return LAYER_CNT;
+        public String getBuiltYear() {
+            return builtYear;
         }
 
-        public void setLAYER_CNT(String LAYER_CNT) {
-            this.LAYER_CNT = LAYER_CNT;
+        public void setBuiltYear(String builtYear) {
+            this.builtYear = builtYear;
         }
 
-        public String getAREA_LO() {
-            return AREA_LO;
+        public String getUage() {
+            return uage;
         }
 
-        public void setAREA_LO(String AREA_LO) {
-            this.AREA_LO = AREA_LO;
-        }
-
-        public String getCREATE_TYPE() {
-            return CREATE_TYPE;
-        }
-
-        public void setCREATE_TYPE(String CREATE_TYPE) {
-            this.CREATE_TYPE = CREATE_TYPE;
-        }
-
-        public String getCREATE_YEAR() {
-            return CREATE_YEAR;
-        }
-
-        public void setCREATE_YEAR(String CREATE_YEAR) {
-            this.CREATE_YEAR = CREATE_YEAR;
-        }
-
-        public String getCREATE_USE() {
-            return CREATE_USE;
-        }
-
-        public void setCREATE_USE(String CREATE_USE) {
-            this.CREATE_USE = CREATE_USE;
+        public void setUage(String uage) {
+            this.uage = uage;
         }
     }
 }
