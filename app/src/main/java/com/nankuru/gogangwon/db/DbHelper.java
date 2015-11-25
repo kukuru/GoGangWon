@@ -6,6 +6,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.provider.ContactsContract;
+import android.util.Log;
 
 import com.nankuru.gogangwon.house.data.EmptyHouse;
 import com.nankuru.gogangwon.house.data.GangWonHouse;
@@ -13,6 +14,7 @@ import com.nankuru.gogangwon.house.data.GangwonHospital;
 import com.nankuru.gogangwon.house.data.GangwonMarket;
 import com.nankuru.gogangwon.house.data.GangwonWelfare;
 import com.nankuru.gogangwon.house.data.Hospital;
+import com.nankuru.gogangwon.house.data.HouseDetailData;
 import com.nankuru.gogangwon.house.data.Market;
 
 import java.util.ArrayList;
@@ -22,27 +24,25 @@ import java.util.ArrayList;
  */
 public class DbHelper{
 
-    private final String DATABASE_NAME = "gangwon.db";
-    private final int VERSION = 1;
-    private DBOpenHelper mDbOpenHelper;
-    private SQLiteDatabase mDb;
-    private Context mCtx;
+    private final static String DATABASE_NAME = "gangwon.db";
+    private final static int VERSION = 1;
+    private static DBOpenHelper mDbOpenHelper;
+    private static SQLiteDatabase mDb;
     private static DbHelper mInstance;
 
-    public DbHelper getInstance(Context context)
+    public static DbHelper getInstance(Context context)
     {
-        mCtx = context;
         if(mInstance == null)
         {
             mInstance = new DbHelper();
-            initDB();
+            initDB(context);
         }
         return mInstance;
     }
 
-    private void initDB()
+    private static void initDB(Context context)
     {
-        mDbOpenHelper = new DBOpenHelper(mCtx, DATABASE_NAME, null, VERSION);
+        mDbOpenHelper = new DBOpenHelper(context, DATABASE_NAME, null, VERSION);
         mDb = mDbOpenHelper.getWritableDatabase();
     }
 
@@ -56,82 +56,96 @@ public class DbHelper{
         {
             EmptyHouse.EmptyHouseRow row = (EmptyHouse.EmptyHouseRow)data;
             ContentValues values = new ContentValues();
-            values.put("address", row.getADDRESS());
-            values.put("owner", row.MST_NM);
-            values.put("build_year", row.CREATE_YEAR);
-            values.put("usage", row.CREATE_YEAR);
+            values.put("address", row.getAddress());
+            values.put("owner", row.getOwner());
+            values.put("build_year", row.getBuiltYear());
+            values.put("usage", row.getUage());
             mDb.insert(DbConst.EMPTY_HOUSE_TABLE_NAME, null, values);
         }
         else if(data instanceof Market.MarketRow)
         {
             Hospital.HospitalRow row = (Hospital.HospitalRow)data;
             ContentValues values = new ContentValues();
-            values.put("gov_type", row.getGOV_TYPE());
-            values.put("title", row.getMED_NM());
-            values.put("address", row.getMED_ADDRESS());
-            values.put("phonenumber", row.getTEL_NUM());
-            values.put("homepage", row.getHOMEPAGE());
+            values.put("gov_type", row.getGovType());
+            values.put("title", row.getName());
+            values.put("address", row.getAddress());
+            values.put("phonenumber", row.getTelNum());
+            values.put("homepage", row.getHomepage());
             mDb.insert(DbConst.MARKET_TABLE_NAME, null, values);
         }
         else if(data instanceof Hospital.HospitalRow)
         {
             Hospital.HospitalRow row = (Hospital.HospitalRow)data;
             ContentValues values = new ContentValues();
-            values.put("gov_type", row.getGOV_TYPE());
-            values.put("title", row.getMED_NM());
-            values.put("address", row.getMED_ADDRESS());
-            values.put("phonenumber", row.getTEL_NUM());
-            values.put("homepage", row.getHOMEPAGE());
+            values.put("gov_type", row.getGovType());
+            values.put("title", row.getName());
+            values.put("address", row.getAddress());
+            values.put("phonenumber", row.getTelNum());
+            values.put("homepage", row.getHomepage());
             mDb.insert(DbConst.HOSPITAL_TABLE_NAME, null, values);
         }
     }
 
-    public Object getData(DbConst.DATA_TYPE type)
+    public ArrayList<HouseDetailData> queryHouseDetailData(String[] arg)
+    {
+        ArrayList<HouseDetailData> array = new ArrayList<>();
+        Cursor c = mDb.rawQuery(DbConst.QUERY_SELECT_CONTAIN_SPECIFIC_WORD, arg);
+        c.moveToFirst();
+        do{
+            HouseDetailData data = new HouseDetailData();
+            data.setAddress(c.getString(1));     //address
+            data.setName(c.getString(2));        //name
+        }while(c.moveToNext());
+        return array;
+    }
+
+    public Object getDataAllByType(DbConst.DATA_TYPE type)
     {
         ArrayList<?> rowArrayList = new ArrayList<>();
         switch (type)
         {
             case EMPTY_HOUSE:
                 Cursor c_empty = mDb.rawQuery(DbConst.QUERY_SELECT_EMPTY_HOUSE_ALL_DATA, null);
-                EmptyHouse.EmptyHouseRow row_empty = new EmptyHouse.EmptyHouseRow();
                 c_empty.moveToFirst();
-                while(c_empty.moveToNext())
-                {
-                    row_empty.setADDRESS(c_empty.getString(1));
-                    row_empty.setMST_NM(c_empty.getString(2));
-                    row_empty.setCREATE_YEAR(c_empty.getString(3));
-                    row_empty.setCREATE_USE(c_empty.getString(4));
+                do {
+                    EmptyHouse.EmptyHouseRow row_empty = new EmptyHouse.EmptyHouseRow();
+
+                    row_empty.setAddress(c_empty.getString(1));
+                    row_empty.setOwner(c_empty.getString(2));
+                    row_empty.setBuiltYear(c_empty.getString(3));
+                    row_empty.setUage(c_empty.getString(4));
                     ((ArrayList<EmptyHouse.EmptyHouseRow>)rowArrayList).add(row_empty);
-                }
+                }while(c_empty.moveToNext());
                 c_empty.close();
                 break;
             case HOSPITAL:
                 Cursor c_hospital = mDb.rawQuery(DbConst.QUERY_SELECT_HOSPITAL_ALL_DATA, null);
-                Market.MarketRow row_hospital = new Market.MarketRow();
                 c_hospital.moveToFirst();
-                while(c_hospital.moveToNext())
-                {
-                    row_hospital.setGOV_TYPE(c_hospital.getString(1));
-                    row_hospital.setMED_NM(c_hospital.getString(2));
-                    row_hospital.setMED_ADDRESS(c_hospital.getString(3));
-                    row_hospital.setTEL_NUM(c_hospital.getString(4));
-                    row_hospital.setHOMEPAGE(c_hospital.getString(5));
-                    ((ArrayList<Market.MarketRow>)rowArrayList).add(row_hospital);
-                }
+
+                do{
+                    Hospital.HospitalRow row_hospital = new Hospital.HospitalRow();
+
+                    row_hospital.setGovType(c_hospital.getString(1));
+                    row_hospital.setName(c_hospital.getString(2));
+                    row_hospital.setAddress(c_hospital.getString(3));
+                    row_hospital.setTelNum(c_hospital.getString(4));
+                    row_hospital.setHomepage(c_hospital.getString(5));
+                    ((ArrayList<Hospital.HospitalRow>)rowArrayList).add(row_hospital);
+                }while(c_hospital.moveToNext());
+                c_hospital.close();
                 break;
             case MARKET:
                 Cursor c_market = mDb.rawQuery(DbConst.QUERY_SELECT_MARKET_ALL_DATA, null);
-                Market.MarketRow row_market = new Market.MarketRow();
                 c_market.moveToFirst();
-                while(c_market.moveToNext())
-                {
-                    row_market.setGOV_TYPE(c_market.getString(1));
-                    row_market.setMED_NM(c_market.getString(2));
-                    row_market.setMED_ADDRESS(c_market.getString(3));
-                    row_market.setTEL_NUM(c_market.getString(4));
-                    row_market.setHOMEPAGE(c_market.getString(5));
+                do{
+                    Market.MarketRow row_market = new Market.MarketRow();
+                    row_market.setGovType(c_market.getString(1));
+                    row_market.setName(c_market.getString(2));
+                    row_market.setAddress(c_market.getString(3));
+                    row_market.setTelNum(c_market.getString(4));
                     ((ArrayList<Market.MarketRow>)rowArrayList).add(row_market);
-                }
+                }while(c_market.moveToNext());
+                c_market.close();
                 break;
             default:
                 break;
@@ -140,7 +154,7 @@ public class DbHelper{
     }
 
 
-    class DBOpenHelper extends SQLiteOpenHelper {
+    static class DBOpenHelper extends SQLiteOpenHelper {
 
         DBOpenHelper(Context context, String name, SQLiteDatabase.CursorFactory factory, int version)
         {

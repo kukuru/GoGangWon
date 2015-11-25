@@ -7,29 +7,29 @@ public class DbConst {
     public static final String TALBES[] = {
             "create table empty_house ("
                     +" _id integer primary key autoincrement, "
-                    +"address text not null , "
-                    +"owner text not null , "
-                    +"build_year text not null"
+                    +"address text not null, "
+                    +"owner text not null, "
+                    +"build_year text not null, "
                     +"usage text not null)",
             "create table hospital ("
                     +" _id integer primary key autoincrement, "
-                    +"gov_type text not null , "
-                    +"title text not null , "
-                    +"address text not null"
-                    +"phonenumber text not null"
-                    +"address text not null)",
+                    +"gov_type text not null, "
+                    +"title text not null, "
+                    +"address text not null, "
+                    +"phonenumber text not null, "
+                    +"homepage text not null)",
             "create table market ("
                     +" _id integer primary key autoincrement, "
-                    +"gov_type text not null , "
-                    +"title text not null , "
-                    +"address text not null"
-                    +"phonenumber text not null"
-                    +"address text not null)",
+                    +"gov_type text not null, "
+                    +"title text not null, "
+                    +"address text not null, "
+                    +"phonenumber text not null)",
     };
 
     public static final String QUERY_SELECT_EMPTY_HOUSE_ALL_DATA = "select * from empty_house";
     public static final String QUERY_SELECT_HOSPITAL_ALL_DATA = "select * from hospital";
     public static final String QUERY_SELECT_MARKET_ALL_DATA = "select * from market";
+    public static final String QUERY_SELECT_CONTAIN_SPECIFIC_WORD = "select * from %s where address like '% %s %'";
 
     public static final String EMPTY_HOUSE_TABLE_NAME = "empty_house" ;
 
