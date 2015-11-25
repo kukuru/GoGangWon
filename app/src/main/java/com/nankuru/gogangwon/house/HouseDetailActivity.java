@@ -3,57 +3,50 @@ package com.nankuru.gogangwon.house;
 import android.content.Intent;
 import android.location.Address;
 import android.location.Geocoder;
-import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.v4.app.FragmentActivity;
-import android.util.Log;
-import android.widget.FrameLayout;
+import android.support.v7.widget.RecyclerView;
+import android.view.View;
+import android.widget.Button;
 import android.widget.LinearLayout;
 
+import com.nankuru.gogangwon.CommonValue;
 import com.nankuru.gogangwon.R;
+import com.nankuru.gogangwon.db.DbConst;
+import com.nankuru.gogangwon.db.DbHelper;
+import com.nankuru.gogangwon.house.data.HouseDetailData;
 import com.nhn.android.maps.NMapActivity;
-import com.nhn.android.maps.NMapContext;
 import com.nhn.android.maps.NMapController;
 import com.nhn.android.maps.NMapView;
 import com.nhn.android.maps.maplib.NGeoPoint;
-import com.nhn.android.maps.nmapdata.NmapSaxHandler;
 import com.nhn.android.maps.nmapmodel.NMapError;
 import com.nhn.android.maps.overlay.NMapPOIdata;
 import com.nhn.android.maps.overlay.NMapPOIitem;
 import com.nhn.android.mapviewer.overlay.NMapOverlayManager;
 import com.nhn.android.mapviewer.overlay.NMapPOIdataOverlay;
-import com.nhn.android.mapviewer.overlay.NMapResourceProvider;
-
-import org.xmlpull.v1.XmlPullParser;
-import org.xmlpull.v1.XmlPullParserException;
-import org.xmlpull.v1.XmlPullParserFactory;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.StringReader;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
 /**
  * Created by nanjui on 2015. 11. 20..
  */
-public class HouseDetailActivity extends NMapActivity implements NMapPOIdataOverlay.OnStateChangeListener, NMapView.OnMapStateChangeListener{
+public class HouseDetailActivity extends NMapActivity implements NMapPOIdataOverlay.OnStateChangeListener,
+                                                                 NMapView.OnMapStateChangeListener,
+                                                                 View.OnClickListener{
 
     public class Coordinate
     {
-        double longitute;
+        double longitude;
         double latitude;
 
-        public double getLongitute() {
-            return longitute;
+        public double getLongitude() {
+            return longitude;
         }
 
-        public void setLongitute(double longitute) {
-            this.longitute = longitute;
+        public void setLongitude(double longitude) {
+            this.longitude = longitude;
         }
 
         public double getLatitude() {
@@ -65,13 +58,18 @@ public class HouseDetailActivity extends NMapActivity implements NMapPOIdataOver
         }
     }
 
-    public static String url = "http://openapi.map.naver.com/api/geocode.php?key=1b0a35e9142eeb6a6fb0459bf95f5fae&encoding=utf-8&coord=latlng&query=%s";
-    private static String MAP_API_KEY = "1b0a35e9142eeb6a6fb0459bf95f5fae";
+    private enum DATA_TYPE
+    {
+        HOSPITAL,
+        MARKET
+    }
 
     private NMapView mMapView;
     private NMapController mMapController;
     private NMapOverlayManager mMapOverlayMgr;
     private NMapViewerResourceProvider mMapResourceProvider;
+    private DbHelper mDbHelper;
+    private HouseDetailListAdapter mAdapter;
 
     protected void onCreate(Bundle savedInstanceState)
     {
@@ -80,20 +78,20 @@ public class HouseDetailActivity extends NMapActivity implements NMapPOIdataOver
 
         Intent intent = getIntent();
         String address = intent.getStringExtra("SELECTED_ADDRESS");
+        mDbHelper = DbHelper.getInstance(this);
         initView("강원도 " + address);
     }
 
     private void initView(String address)
     {
         mMapView = (NMapView) findViewById(R.id.naver_map);
-        mMapView.setApiKey(MAP_API_KEY);
+        mMapView.setApiKey(CommonValue.MAP_API_KEY);
 
         mMapView.setClickable(true);
         mMapView.setEnabled(true);
         mMapView.setFocusable(true);
         mMapView.setFocusableInTouchMode(true);
         mMapView.requestFocus();
-
 
         mMapController = mMapView.getMapController();
 
@@ -116,6 +114,33 @@ public class HouseDetailActivity extends NMapActivity implements NMapPOIdataOver
         {
             e.printStackTrace();
         }
+
+        Button hospital = (Button) findViewById(R.id.hospital_btn);
+        hospital.setOnClickListener(this);
+
+        Button market = (Button) findViewById(R.id.market_btn);
+        market.setOnClickListener(this);
+
+        RecyclerView convenience_list = (RecyclerView) findViewById(R.id.convenience_list);
+        mAdapter = new HouseDetailListAdapter(getData(DATA_TYPE.HOSPITAL), this);
+        convenience_list.setAdapter(mAdapter);
+    }
+
+    private ArrayList<HouseDetailData> getData(DATA_TYPE type)
+    {
+        ArrayList<HouseDetailData> dataArray = new ArrayList<>();
+        switch (type)
+        {
+            case HOSPITAL:
+                String arg_hospital[] = {DbConst.HOSPITAL_TABLE_NAME, "강릉시"};
+                dataArray.addAll(mDbHelper.queryHouseDetailData(arg_hospital));
+                break;
+            case MARKET:
+                String arg_market[] = {DbConst.HOSPITAL_TABLE_NAME, "강릉시"};
+                dataArray.addAll(mDbHelper.queryHouseDetailData(arg_market));
+                break;
+        }
+        return dataArray;
     }
 
     private void displayPin(Coordinate point)
@@ -125,7 +150,7 @@ public class HouseDetailActivity extends NMapActivity implements NMapPOIdataOver
         // set POI data
         NMapPOIdata poiData = new NMapPOIdata(1, mMapResourceProvider);
         poiData.beginPOIdata(1);
-        poiData.addPOIitem(point.getLongitute(), point.getLatitude(), "위치", markerId, 0);
+        poiData.addPOIitem(point.getLongitude(), point.getLatitude(), "위치", markerId, 0);
         poiData.endPOIdata();
 
         // create POI data overlay
@@ -151,10 +176,27 @@ public class HouseDetailActivity extends NMapActivity implements NMapPOIdataOver
             Address a = fromLocationName.get(0);
             Coordinate point = new Coordinate();
             point.setLatitude((a.getLatitude()));
-            point.setLongitute(a.getLongitude());
+            point.setLongitude(a.getLongitude());
             return point;
         }
         return null;
+    }
+
+    @Override
+    public void onClick(View v) {
+        int id = v.getId();
+        switch (id)
+        {
+            case R.id.hospital_btn:
+                mAdapter.setData(getData(DATA_TYPE.HOSPITAL));
+                mAdapter.notifyDataSetChanged();
+                break;
+            case R.id.market_btn:
+                mAdapter.setData(getData(DATA_TYPE.MARKET));
+                mAdapter.notifyDataSetChanged();
+                break;
+        }
+
     }
 
     @Override

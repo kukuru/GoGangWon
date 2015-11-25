@@ -1,6 +1,7 @@
 package com.nankuru.gogangwon.house;
 
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -33,10 +34,10 @@ public class HouseListAdapter extends RecyclerView.Adapter<HouseViewHolder>{
     @Override
     public void onBindViewHolder(HouseViewHolder holder, int position) {
         EmptyHouse.EmptyHouseRow row = mHouseInfo.get(position);
-        holder.addressTv.setText(row.ADDRESS);
-        holder.ownerTv.setText(row.MST_NM);
-        holder.buildTv.setText(row.CREATE_YEAR);
-        holder.usageTv.setText(row.CREATE_USE);
+        holder.addressTv.setText(row.getAddress());
+        holder.ownerTv.setText(row.getOwner());
+        holder.buildTv.setText(row.getBuiltYear());
+        holder.usageTv.setText(row.getUage());
     }
 
     @Override
@@ -59,6 +60,11 @@ public class HouseListAdapter extends RecyclerView.Adapter<HouseViewHolder>{
         else
         {
             mHouseInfo = info;
+        }
+
+        for(int i = 0; i<info.size(); i++)
+        {
+            Log.d("NJ LEE", "data from list : "+info.get(i).getAddress());
         }
     }
 }

@@ -7,8 +7,32 @@
         android:id="@+id/naver_map"
         android:layout_width="match_parent"
         android:layout_height="200dp" />
-    <ListView
+    
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:orientation="horizontal"
+        android:gravity="center_horizontal">
+        <Button
+            android:id="@+id/hospital_btn"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:padding="5dp"
+            android:text="Hospital"
+            android:textSize="15dp"
+            android:textColor="@android:color/white"/>
+        <Button
+            android:id="@+id/market_btn"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:text="Market"
+            android:textSize="15dp"
+            android:padding="5dp"
+            android:textColor="@android:color/white"/>
+    </LinearLayout>
+    <RecyclerView
         android:id="@+id/convenience_list"
+        android:layout_margin="5dp"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"/>
