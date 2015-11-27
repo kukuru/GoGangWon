@@ -64,13 +64,12 @@ public class DbHelper{
         }
         else if(data instanceof Market.MarketRow)
         {
-            Hospital.HospitalRow row = (Hospital.HospitalRow)data;
+            Market.MarketRow row = (Market.MarketRow )data;
             ContentValues values = new ContentValues();
             values.put("gov_type", row.getGovType());
             values.put("title", row.getName());
             values.put("address", row.getAddress());
             values.put("phonenumber", row.getTelNum());
-            values.put("homepage", row.getHomepage());
             mDb.insert(DbConst.MARKET_TABLE_NAME, null, values);
         }
         else if(data instanceof Hospital.HospitalRow)
@@ -86,15 +85,19 @@ public class DbHelper{
         }
     }
 
-    public ArrayList<HouseDetailData> queryHouseDetailData(String[] arg)
+    public ArrayList<HouseDetailData> queryHouseDetailDataWithSpecificAWord(String tableName, String word)
     {
         ArrayList<HouseDetailData> array = new ArrayList<>();
-        Cursor c = mDb.rawQuery(DbConst.QUERY_SELECT_CONTAIN_SPECIFIC_WORD, arg);
+        String query = String.format(DbConst.QUERY_SELECT_CONTAIN_SPECIFIC_WORD, tableName);
+        String arg[] = {word+"%",};
+        Cursor c = mDb.rawQuery(query, arg);
         c.moveToFirst();
         do{
             HouseDetailData data = new HouseDetailData();
-            data.setAddress(c.getString(1));     //address
             data.setName(c.getString(2));        //name
+            data.setAddress(c.getString(3));     //address
+            array.add(data);
+            Log.d("NJ LEE", "address : "+data.getAddress());
         }while(c.moveToNext());
         return array;
     }

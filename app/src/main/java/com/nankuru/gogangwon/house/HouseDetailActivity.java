@@ -4,10 +4,13 @@ import android.content.Intent;
 import android.location.Address;
 import android.location.Geocoder;
 import android.os.Bundle;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import com.nankuru.gogangwon.CommonValue;
 import com.nankuru.gogangwon.R;
@@ -70,6 +73,34 @@ public class HouseDetailActivity extends NMapActivity implements NMapPOIdataOver
     private NMapViewerResourceProvider mMapResourceProvider;
     private DbHelper mDbHelper;
     private HouseDetailListAdapter mAdapter;
+    private Coordinate mHousePoint;
+    private HouseDetailListAdapter.OnRecycleViewItemClickListener mClickListItemListener = new HouseDetailListAdapter.OnRecycleViewItemClickListener() {
+        @Override
+        public void onRecycleViewItemClickListener(View view) {
+            String address = ((TextView) view.findViewById(R.id.sub_info)).getText().toString();
+            Coordinate point = getCoordinationFromAddress(address);
+            Log.d("NJ LEE", "onClick : " + point.getLongitude() + ", " + point.getLatitude());
+            if (point != null) {
+                NMapPOIdata poiData = new NMapPOIdata(2, mMapResourceProvider);
+                poiData.beginPOIdata(2);
+                poiData.addPOIitem(mHousePoint.getLongitude(), mHousePoint.getLatitude(), "출발지", NMapPOIflagType.FROM, 0);
+                poiData.addPOIitem(point.getLongitude(), point.getLatitude(), "도착", NMapPOIflagType.TO, 0);
+                poiData.endPOIdata();
+
+                // create POI data overlay
+                NMapPOIdataOverlay poiDataOverlay = mMapOverlayMgr.createPOIdataOverlay(poiData, null);
+
+                // set event listener to the overlay
+                poiDataOverlay.setOnStateChangeListener(HouseDetailActivity.this);
+
+                // select an item
+                poiDataOverlay.selectPOIitem(0, true);
+
+                // show all POI data
+                poiDataOverlay.showAllPOIdata(0);
+            }
+        }
+    };
 
     protected void onCreate(Bundle savedInstanceState)
     {
@@ -104,16 +135,8 @@ public class HouseDetailActivity extends NMapActivity implements NMapPOIdataOver
         mMapResourceProvider = new NMapViewerResourceProvider(this);
         mMapOverlayMgr = new NMapOverlayManager(this, mMapView, mMapResourceProvider);
 
-        try
-        {
-            Coordinate point = null;
-            point = getCoordinationFromAddress(address);
-            displayPin(point);
-        }
-        catch (IOException e)
-        {
-            e.printStackTrace();
-        }
+        mHousePoint = getCoordinationFromAddress(address);
+        displayPin(mHousePoint);
 
         Button hospital = (Button) findViewById(R.id.hospital_btn);
         hospital.setOnClickListener(this);
@@ -122,7 +145,14 @@ public class HouseDetailActivity extends NMapActivity implements NMapPOIdataOver
         market.setOnClickListener(this);
 
         RecyclerView convenience_list = (RecyclerView) findViewById(R.id.convenience_list);
+        convenience_list.setHasFixedSize(true);
+
+        LinearLayoutManager layoutMgr = new LinearLayoutManager(this);
+        layoutMgr.setOrientation(LinearLayoutManager.VERTICAL);
+        convenience_list.setLayoutManager(layoutMgr);
+
         mAdapter = new HouseDetailListAdapter(getData(DATA_TYPE.HOSPITAL), this);
+        mAdapter.setOnRecycleViewitemClickListener(mClickListItemListener);
         convenience_list.setAdapter(mAdapter);
     }
 
@@ -132,12 +162,10 @@ public class HouseDetailActivity extends NMapActivity implements NMapPOIdataOver
         switch (type)
         {
             case HOSPITAL:
-                String arg_hospital[] = {DbConst.HOSPITAL_TABLE_NAME, "강릉시"};
-                dataArray.addAll(mDbHelper.queryHouseDetailData(arg_hospital));
+                dataArray.addAll(mDbHelper.queryHouseDetailDataWithSpecificAWord(DbConst.HOSPITAL_TABLE_NAME, "강릉시"));
                 break;
             case MARKET:
-                String arg_market[] = {DbConst.HOSPITAL_TABLE_NAME, "강릉시"};
-                dataArray.addAll(mDbHelper.queryHouseDetailData(arg_market));
+                dataArray.addAll(mDbHelper.queryHouseDetailDataWithSpecificAWord(DbConst.MARKET_TABLE_NAME, "강릉시"));
                 break;
         }
         return dataArray;
@@ -166,18 +194,22 @@ public class HouseDetailActivity extends NMapActivity implements NMapPOIdataOver
         poiDataOverlay.showAllPOIdata(0);
     }
 
-    public Coordinate getCoordinationFromAddress(String address) throws IOException
+    public Coordinate getCoordinationFromAddress(String address)
     {
         Geocoder geocoder = new Geocoder(getApplicationContext(), Locale.getDefault());
         List<Address> fromLocationName = null;
-        fromLocationName = geocoder.getFromLocationName(address,   1);
-        if (fromLocationName != null && fromLocationName.size() > 0)
-        {
-            Address a = fromLocationName.get(0);
-            Coordinate point = new Coordinate();
-            point.setLatitude((a.getLatitude()));
-            point.setLongitude(a.getLongitude());
-            return point;
+        try {
+            fromLocationName = geocoder.getFromLocationName(address,   1);
+            if (fromLocationName != null && fromLocationName.size() > 0)
+            {
+                Address a = fromLocationName.get(0);
+                Coordinate point = new Coordinate();
+                point.setLatitude((a.getLatitude()));
+                point.setLongitude(a.getLongitude());
+                return point;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
         return null;
     }
@@ -185,6 +217,7 @@ public class HouseDetailActivity extends NMapActivity implements NMapPOIdataOver
     @Override
     public void onClick(View v) {
         int id = v.getId();
+        Log.d("NJ LEE", "id : " + id);
         switch (id)
         {
             case R.id.hospital_btn:

@@ -30,7 +30,7 @@
             android:padding="5dp"
             android:textColor="@android:color/white"/>
     </LinearLayout>
-    <RecyclerView
+    <android.support.v7.widget.RecyclerView
         android:id="@+id/convenience_list"
         android:layout_margin="5dp"
         android:layout_width="match_parent"

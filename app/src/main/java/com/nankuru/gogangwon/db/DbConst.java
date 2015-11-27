@@ -29,7 +29,7 @@ public class DbConst {
     public static final String QUERY_SELECT_EMPTY_HOUSE_ALL_DATA = "select * from empty_house";
     public static final String QUERY_SELECT_HOSPITAL_ALL_DATA = "select * from hospital";
     public static final String QUERY_SELECT_MARKET_ALL_DATA = "select * from market";
-    public static final String QUERY_SELECT_CONTAIN_SPECIFIC_WORD = "select * from %s where address like '% %s %'";
+    public static final String QUERY_SELECT_CONTAIN_SPECIFIC_WORD = "select * from %s where address like ?";
 
     public static final String EMPTY_HOUSE_TABLE_NAME = "empty_house" ;
 
